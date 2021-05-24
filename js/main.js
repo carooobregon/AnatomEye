@@ -248,9 +248,9 @@ function init(event) {
     });
 
     let vistaDelOjo = gui.addFolder("Vista del Ojo")
-    gui.add(params, "play").name("Rotar").listen().onChange(function(value) {
+    vistaDelOjo.add(params, "play").name("Rotar").listen().onChange(function(value) {
     });
-    gui.add(params, "stop").name("Parar").listen().onChange(function(value) { 
+    vistaDelOjo.add(params, "stop").name("Parar").listen().onChange(function(value) { 
     });
 
 
