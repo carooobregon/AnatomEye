@@ -12,6 +12,40 @@ import * as dat from "/js/jsm/libs/dat.gui.module.js";
 
 let renderer, scene, camera1, camera2, camera3, camera4, mesh, stats, cameraControls, gui, texture, material, ogTexture, ogMaterial;
 let multiview = false, camAway = 200.0;
+const annotation = document.querySelector(".annotation");
+const titulo = document.getElementById("title");
+const description = document.getElementById("desc");
+
+
+const numberTexture = new THREE.CanvasTexture(
+    // document.querySelector('#number')
+    document.querySelector(".annotation")
+);
+
+function updateAnnotationOpacity() {
+    const meshDistance = camera.position.distanceTo(mesh.position);
+    const spriteDistance = camera.position.distanceTo(sprite.position);
+    spriteBehindObject = spriteDistance > meshDistance;
+    sprite.material.opacity = spriteBehindObject ? 0.25 : 1;
+
+    // Do you want a number that changes size according to its position?
+    // Comment out the following line and the `::before` pseudo-element.
+}
+
+function updateScreenPosition() {
+    const vector = new THREE.Vector3(250, 250, 250);
+    const canvas = renderer.domElement;
+
+    vector.project(camera);
+
+    vector.x = Math.round((0.5 + vector.x / 2) * (canvas.width / window.devicePixelRatio));
+    vector.y = Math.round((0.5 - vector.y / 2) * (canvas.height / window.devicePixelRatio));
+
+    annotation.style.top = `${vector.y}px`;
+    annotation.style.left = `${vector.x}px`;
+    annotation.style.opacity = spriteBehindObject ? 0.25 : 1;
+}
+
 
 function loadTexture(name){
     texture = new THREE.TextureLoader().load(`/assets/textures/${name}`);
@@ -22,6 +56,7 @@ function loadTexture(name){
             if (child.isMesh) {
                 child.material = material;
                 child.geometry.center();
+                
                 // SCENE HIERARCHY
                 scene.add(child);
                 mesh = child;
@@ -29,14 +64,32 @@ function loadTexture(name){
         }); 
     });
 }
+function annotations(){
+    const vector = new THREE.Vector3(250, 250, 250);
+    const canvas = renderer.domElement; // `renderer` is a THREE.WebGLRenderer
+
+    vector.project(camera); // `camera` is a THREE.PerspectiveCamera
+
+    vector.x = Math.round((0.5 + vector.x / 2) * (canvas.width / window.devicePixelRatio));
+    vector.y = Math.round((0.5 - vector.y / 2) * (canvas.height / window.devicePixelRatio));
+
+    const annotation = document.querySelector('.annotation');
+    annotation.style.top = `${vector.y}px`;
+    annotation.style.left = `${vector.x}px`;
+}
+
 function init(event) {
     // RENDERER ENGINE
+    
     renderer = new THREE.WebGLRenderer({antialias: true});
     renderer.setClearColor(new THREE.Color(1.0, 0.7, 0.6));
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setScissorTest(true);
     renderer.autoclear = false;  
     document.body.appendChild(renderer.domElement);
+    // annotations()
+    // updateAnnotationOpacity();
+    // updateScreenPosition();
 
     // SCENE
     scene = new THREE.Scene();
@@ -81,6 +134,7 @@ function init(event) {
         obj.traverse(function(child) {
             if (child.isMesh) {
                 child.material = material;
+                
                 child.geometry.center();
                 // SCENE HIERARCHY
                 scene.add(child);
@@ -101,24 +155,39 @@ function init(event) {
         cambioPupila:  false,
         cambioRetina:  false,
         colorOjoCafe: function() {
+            titulo.textContent = "Ojo"
+            description.textContent = "El ojo es un órgano que detecta la luz y es la base del sentido de la vista. Su función consiste básicamente en transformar la energía lumínica en señales eléctricas que son enviadas al cerebro a través del nervio óptico."
+            loadTexture("loblanco.jpeg")
             loadTexture("brown.jpg")
         },
         colorOjoVerde: function() {
+            titulo.textContent = "Ojo"
+            description.textContent = "El ojo es un órgano que detecta la luz y es la base del sentido de la vista. Su función consiste básicamente en transformar la energía lumínica en señales eléctricas que son enviadas al cerebro a través del nervio óptico."
             loadTexture("green.jpeg")
         },
         esclerotica: function() {
+            titulo.textContent = "Esclerotica"
+            description.textContent = "Capa exterior blanca del ojo, opaca y fibrosa que se extiende desde la córnea hasta el nervio óptico en la parte posterior de ojo."
             loadTexture("loblanco.jpeg")
         },
         cornea: function() {
+            titulo.textContent = "Cornea"
+            description.textContent = "Estructura del ojo que permite el paso de la luz desde el exterior al interior del ojo y protege el iris y el cristalino, además de otras estructuras oculares."
             loadTexture("cornea.jpeg")
         },
         pupila: function() {
+            titulo.textContent = "Pupila"
+            description.textContent = "Estructura del ojo que consiste en un orificio situado en la parte central del iris por el cual penetra la luz al interior del globo ocular."
             loadTexture("pupila.jpeg")
         },
         iris: function() {
+            titulo.textContent = "Iris"
+            description.textContent = "Elementos que componen el sistema óptico de nuestros ojos. Su morfología es la de una membrana circular y coloreada en cuyo centro se encuentra la pupila, que es una abertura central que permite el paso de la luz al interior del globo ocular."
             loadTexture("iris.jpeg")
         },
         venas: function() {
+            titulo.textContent = "Vasos sanguíneos"
+            description.textContent = "Las venas oftálmicas (venas del vórtice) y la vena central de la retina drenan la sangre del ojo. Estos vasos sanguíneos entran y salen por la parte posterior del ojo."
             loadTexture("venas.jpeg")
         },
     };
@@ -145,7 +214,7 @@ function init(event) {
     });
     partesDelOjo.add(params, "pupila").name("Pupila").listen().onChange(function(value) {
     });
-    partesDelOjo.add(params, "venas").name("Venas").listen().onChange(function(value) { 
+    partesDelOjo.add(params, "venas").name("Vasos sanguíneos").listen().onChange(function(value) { 
     });
     partesDelOjo.add(params, "iris").name("Iris").listen().onChange(function(value) { 
     });
@@ -208,9 +277,9 @@ function renderLoop() {
 
 function updateScene() {
     if(mesh) {
-       // mesh.rotation.y = mesh.rotation.y + 0.01;
+       //mesh.rotation.y = mesh.rotation.y + 0.01;
         
-        
+       
     }
 
 }
