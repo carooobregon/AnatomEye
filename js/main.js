@@ -10,41 +10,12 @@ import * as dat from "/js/jsm/libs/dat.gui.module.js";
 
 "use strict";
 
-let renderer, scene, camera1, camera2, camera3, camera4, mesh, stats, cameraControls, gui, texture, material, ogTexture, ogMaterial;
+let renderer, scene, pointLight, camera1, camera2, camera3, camera4, mesh, stats, cameraControls, gui, texture, material, params, degrees;
 let multiview = false, camAway = 200.0;
 const annotation = document.querySelector(".annotation");
 const titulo = document.getElementById("title");
 const description = document.getElementById("desc");
-
-
-const numberTexture = new THREE.CanvasTexture(
-    // document.querySelector('#number')
-    document.querySelector(".annotation")
-);
-
-function updateAnnotationOpacity() {
-    const meshDistance = camera.position.distanceTo(mesh.position);
-    const spriteDistance = camera.position.distanceTo(sprite.position);
-    spriteBehindObject = spriteDistance > meshDistance;
-    sprite.material.opacity = spriteBehindObject ? 0.25 : 1;
-
-    // Do you want a number that changes size according to its position?
-    // Comment out the following line and the `::before` pseudo-element.
-}
-
-function updateScreenPosition() {
-    const vector = new THREE.Vector3(250, 250, 250);
-    const canvas = renderer.domElement;
-
-    vector.project(camera);
-
-    vector.x = Math.round((0.5 + vector.x / 2) * (canvas.width / window.devicePixelRatio));
-    vector.y = Math.round((0.5 - vector.y / 2) * (canvas.height / window.devicePixelRatio));
-
-    annotation.style.top = `${vector.y}px`;
-    annotation.style.left = `${vector.x}px`;
-    annotation.style.opacity = spriteBehindObject ? 0.25 : 1;
-}
+degrees = 1
 
 
 function loadTexture(name){
@@ -148,12 +119,14 @@ function init(event) {
     gui.close();
 
     // var cambioColor = false;
-    var params = {
+    params = {
         cambioColor: false,
         cambioEsclerotica: false,
         cambioCornea:  false,
         cambioPupila:  false,
         cambioRetina:  false,
+        cambioBackground: false,
+
         colorOjoCafe: function() {
             titulo.textContent = "Ojo"
             description.textContent = "El ojo es un órgano que detecta la luz y es la base del sentido de la vista. Su función consiste básicamente en transformar la energía lumínica en señales eléctricas que son enviadas al cerebro a través del nervio óptico."
@@ -180,6 +153,22 @@ function init(event) {
             description.textContent = "Estructura del ojo que consiste en un orificio situado en la parte central del iris por el cual penetra la luz al interior del globo ocular."
             loadTexture("pupila.jpeg")
         },
+        pupilaDilatada: function() {
+            titulo.textContent = "Pupila Dilatada"
+            description.textContent = "Las venas oftálmicas (venas del vórtice) y la vena central de la retina drenan la sangre del ojo. Estos vasos sanguíneos entran y salen por la parte posterior del ojo."
+            loadTexture("dilatada.jpeg")
+            const width = 10;
+            const height = 10;
+            const intensity = 1;
+            const rectLight = new THREE.RectAreaLight( 0xffffff, intensity,  width, height );
+            rectLight.position.set( 5, 5, 0 );
+            rectLight.lookAt( 0, 0, 0 );
+            scene.add( rectLight )
+            
+            const rectLightHelper = new THREE.RectAreaLightHelper( rectLight );
+            rectLight.add( rectLightHelper );
+                            
+        },
         iris: function() {
             titulo.textContent = "Iris"
             description.textContent = "Elementos que componen el sistema óptico de nuestros ojos. Su morfología es la de una membrana circular y coloreada en cuyo centro se encuentra la pupila, que es una abertura central que permite el paso de la luz al interior del globo ocular."
@@ -190,6 +179,43 @@ function init(event) {
             description.textContent = "Las venas oftálmicas (venas del vórtice) y la vena central de la retina drenan la sangre del ojo. Estos vasos sanguíneos entran y salen por la parte posterior del ojo."
             loadTexture("venas.jpeg")
         },
+
+        orbitar: false,
+        play: function() {
+            // console.log("play");
+            params.orbitar = true;
+        },
+        stop: function() {
+            // console.log("stop");
+            params.orbitar = false;
+        },
+
+
+        cine: function() {
+            params.cambioBackground = true;
+            var texture = new THREE.TextureLoader().load( "assets/textures/cine1.jpeg" );
+            scene.background = texture;        
+        },
+
+        parque: function() {
+            params.cambioBackground = true;
+            var texture = new THREE.TextureLoader().load( "assets/textures/Parque.jpeg" );
+            scene.background = texture;        
+        },
+
+        tec: function() {
+            params.cambioBackground = true;
+            var texture = new THREE.TextureLoader().load( "assets/textures/Tec.jpeg" );
+            scene.background = texture;        
+        },
+        
+        fiesta: function() {
+            params.cambioBackground = true;
+            var texture = new THREE.TextureLoader().load( "assets/textures/Party.jpeg" );
+            scene.background = texture;        
+        },
+   
+        
     };
 
     let aparienciaDelOjo = gui.addFolder("Apariencia del Ojo");
@@ -214,10 +240,33 @@ function init(event) {
     });
     partesDelOjo.add(params, "pupila").name("Pupila").listen().onChange(function(value) {
     });
+    partesDelOjo.add(params, "pupilaDilatada").name("Pupila Dilatada").listen().onChange(function(value) { 
+    });
     partesDelOjo.add(params, "venas").name("Vasos sanguíneos").listen().onChange(function(value) { 
     });
     partesDelOjo.add(params, "iris").name("Iris").listen().onChange(function(value) { 
     });
+
+    let vistaDelOjo = gui.addFolder("Vista del Ojo")
+    gui.add(params, "play").name("Rotar").listen().onChange(function(value) {
+    });
+    gui.add(params, "stop").name("Parar").listen().onChange(function(value) { 
+    });
+
+
+    let ambiente = gui.addFolder("Ambiente");
+    
+    
+   ambiente.add(params,"cine").name("Cine").listen().onChange(function(value) {
+    });
+
+   ambiente.add(params, "parque").name("Parque").listen().onChange(function(value) { 
+   });
+   ambiente.add(params, "tec").name("Tec").listen().onChange(function(value) {
+    });
+   ambiente.add(params, "fiesta").name("Fiesta").listen().onChange(function(value) { 
+   });
+
     // gui.open();
 
     // SETUP STATS
@@ -278,7 +327,9 @@ function renderLoop() {
 function updateScene() {
     if(mesh) {
        //mesh.rotation.y = mesh.rotation.y + 0.01;
-        
+       if (params.orbitar) {
+        mesh.rotation.y = mesh.rotation.y + 0.01
+       }
        
     }
 
