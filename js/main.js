@@ -10,9 +10,25 @@ import * as dat from "/js/jsm/libs/dat.gui.module.js";
 
 "use strict";
 
-let renderer, scene, camera1, camera2, camera3, camera4, mesh, stats, cameraControls, gui;
+let renderer, scene, camera1, camera2, camera3, camera4, mesh, stats, cameraControls, gui, texture, material, ogTexture, ogMaterial;
 let multiview = false, camAway = 200.0;
 
+function loadTexture(name){
+    texture = new THREE.TextureLoader().load(`/assets/textures/${name}`);
+    material = new THREE.MeshBasicMaterial( { map: texture } );
+    let loader = new OBJLoader();
+    loader.load('./assets/obj/eye.obj', function(obj) {
+        obj.traverse(function(child) {
+            if (child.isMesh) {
+                child.material = material;
+                child.geometry.center();
+                // SCENE HIERARCHY
+                scene.add(child);
+                mesh = child;
+            }
+        }); 
+    });
+}
 function init(event) {
     // RENDERER ENGINE
     renderer = new THREE.WebGLRenderer({antialias: true});
@@ -57,29 +73,83 @@ function init(event) {
             
     // MODEL
 
-    //Ojo humano porque mi equipo haremos un modelo de la anatomia del ojo
-    const texture = new THREE.TextureLoader().load('assets/textures/eye_anatomy_sign_A.jpg278b3440-48d2-4221-83f7-d80c803ec6c1Zoom.jpg');
-    const material = new THREE.MeshBasicMaterial( { map: texture } );
+    texture = new THREE.TextureLoader().load('/assets/textures/brown.jpg');
+    material = new THREE.MeshBasicMaterial( { map: texture } );
 
     let loader = new OBJLoader();
     loader.load('./assets/obj/eye.obj', function(obj) {
         obj.traverse(function(child) {
             if (child.isMesh) {
                 child.material = material;
-               child.geometry.center();
+                child.geometry.center();
                 // SCENE HIERARCHY
                 scene.add(child);
                 mesh = child;
             }
-        });
-        
+        }); 
     });
-    
-
    
     // GUI
     gui = new dat.GUI();
     gui.close();
+
+    // var cambioColor = false;
+    var params = {
+        cambioColor: false,
+        cambioEsclerotica: false,
+        cambioCornea:  false,
+        cambioPupila:  false,
+        cambioRetina:  false,
+        colorOjoCafe: function() {
+            loadTexture("brown.jpg")
+        },
+        colorOjoVerde: function() {
+            loadTexture("green.jpeg")
+        },
+        esclerotica: function() {
+            loadTexture("loblanco.jpeg")
+        },
+        cornea: function() {
+            loadTexture("cornea.jpeg")
+        },
+        pupila: function() {
+            loadTexture("pupila.jpeg")
+        },
+        iris: function() {
+            loadTexture("iris.jpeg")
+        },
+        venas: function() {
+            loadTexture("venas.jpeg")
+        },
+    };
+
+    let aparienciaDelOjo = gui.addFolder("Apariencia del Ojo");
+
+    // toggle button for eye changing color
+    aparienciaDelOjo.add(params, "colorOjoCafe").name("Ojo café").onChange(function(value) {
+        // changing the texture here
+        // params.cambioColor = !params.cambioColor
+
+    });
+    aparienciaDelOjo.add(params, "colorOjoVerde").name("Ojo verde").onChange(function(value) {
+        // changing the texture here
+        // params.cambioColor = !params.cambioColor
+
+    });
+
+    let partesDelOjo = gui.addFolder("Partes del Ojo");
+    partesDelOjo.add(params, "esclerotica").name("Esclerotica").listen().onChange(function(value) {
+        
+    });
+    partesDelOjo.add(params, "cornea").name("Cornea").listen().onChange(function(value) { 
+    });
+    partesDelOjo.add(params, "pupila").name("Pupila").listen().onChange(function(value) {
+    });
+    partesDelOjo.add(params, "venas").name("Venas").listen().onChange(function(value) { 
+    });
+    partesDelOjo.add(params, "iris").name("Iris").listen().onChange(function(value) { 
+    });
+    // gui.open();
 
     // SETUP STATS
     stats = new Stats();
